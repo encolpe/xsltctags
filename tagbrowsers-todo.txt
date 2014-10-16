@@ -1,0 +1,22 @@
+topic about tags in vim http://vim.wikia.com/wiki/Browsing_programs_with_tags
+tagbar https://github.com/vim-scripts/Tagbar
+   http://asktherelic.com/2011/06/06/vim-plugin:-tagbar/  (article demoing tags grouped by scope)
+yate http://www.vim.org/scripts/script.php?script_id=2068
+taglist plus https://github.com/int3/vim-taglist-plus
+taglist http://www.vim.org/scripts/script.php?script_id=273
+easytags http://peterodding.com/code/vim/easytags/
+
+test ctags and cscope docs in vim : in html format  (put space after vim and before : to prevent modelines from being triggered
+  http://vimdoc.sourceforge.net/htmldoc/usr_29.html#29.1
+  http://www.arl.wustl.edu/~fredk/Courses/Docs/vim/if_cscop.html
+
+http://stackoverflow.com/questions/934233/cscope-or-ctags-why-choose-one-over-the-other
+
+visual diagram of moving with marks, jumps, tags, cscopes, others?
+
+May want to tag (and/or use cscope) on xpath... which means an XPath parser may be necessary?
+Or maybe it can be done with regexes...
+http://www.w3.org/TR/xquery-xpath-parsing/#XPath-EBNF
+
+https://sites.google.com/site/vimcctree/
+http://sourceforge.net/projects/ccglue/

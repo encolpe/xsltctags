@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#assumes xsltproc.exe is in $PATH
+
+#function to show program usage
+show_usage(){
+cat << EOF
+Usage: xsltctags [options] [file]
+Options:
+  -f tagfile   Use the name specified by tagfile for the tag file
+               Default file name is 'tags'
+               If tagfile = '-' (without quotes), output will be to stdout
+  -o tagfile   Synonym for -f tagfile
+  -p [xsltproc|saxon]  Default is xsltproc
+  -v           create file with vim tagbar g:tagbar_type_xslt definition
+  -h           Display this usage info
+Example Usage:
+  xsltctags test.xsl
+  --- Processes test.xsl and places output
+  --- in to default tagfile named "tags"
+
+  xsltctags -f - test.xsl
+  --- Processes test.xsl
+  --- Output is streamed to stdout
+
+  xsltctags -f mytags.txt test.xsl
+  --- Processes test.xsl and places output
+  --- in mytags.txt
+EOF
+}
+
+ctags_xsltproc(){
+xsltproc --stringparam fileName "$1" "$xsltctags_xsl-xsltproc.xsl" "$1" > $_tagoutput
+}
+
+ctags_saxon(){
+java -jar jars/saxon9.jar -l:on -versionmsg:off -xsl:"$xsltctags_xsl-saxon.xsl" -it:Start fileNames="$1"  > $_tagoutput
+}
+
+#If no arguments passed, then show usage
+if [[ $# -eq 0 ]] ; then
+  show_usage
+  exit
+fi
+
+#default values before parsing arguments
+_tagoutput=tags #Default output file is tags
+_xsltprocessor=xsltproc
+
+while getopts ":f:ho:p:" opt; do
+  case "$opt" in
+    h)    show_usage; exit ;;
+    f |o) if [[ $OPTARG == "-" ]]; then
+                _tagoutput="/dev/stdout"
+              else
+                _tagoutput="$OPTARG"
+              fi
+              ;;
+    p)    _xsltprocessor="$OPTARG"
+          ;;
+    \?)   echo "$0: ERROR - unrecognized option $1" 1>&2; exit 1;;
+    :)    echo "$0: ERROR - option -$OPTARG requires an argument" 1>&2; exit 1;;
+    *)    break;;
+  esac
+done
+
+num_files=$#
+if [[ $num_files -lt 1 ]]; then
+  echo "$0: ERROR - no files to process" 1>&2
+  exit 1 #Exit if there are no files to process
+fi
+
+xsltctags_xsl=`dirname \`which $0\``/xsl/xsltctags
+
+echo _tagoutput=$_tagoutput
+echo _xsltprocessor=$_xsltprocessor
+echo _remainingoptions=$1
