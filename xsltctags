@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 #assumes xsltproc.exe is in $PATH
 
+_appDir=`dirname \`which $0\``
+_jarsDir=$_appDir/jars
+_xslDir=$_appDir/xsl
+
 #function to show program usage
 show_usage(){
 cat << EOF
@@ -28,12 +32,27 @@ Example Usage:
 EOF
 }
 
-ctags_xsltproc(){
-xsltproc --stringparam fileName "$1" "$xsltctags_xsl-xsltproc.xsl" "$1" > $_tagoutput
+_runctags(){
+  #echo _tagoutput=$_tagoutput
+  #echo _xsltprocessor=$_xsltprocessor
+  #echo _fileToParse=$_fileToParse
+  if [[ "$_xsltprocessor" == "xsltproc" ]]; then
+    if [[ "$_tagoutput" == "/dev/stdout" ]]; then
+      xsltproc --stringparam fileName "$_fileToParse" "$_xslDir/xsltctags-xsltproc.xsl" "$_fileToParse"
+    else
+      xsltproc --output "$_tagoutput" --stringparam fileName "$_fileToParse" "$_xslDir/xsltctags-xsltproc.xsl" "$_fileToParse"
+    fi
+  elif [[ "$_xsltprocessor" == "saxon" ]]; then
+    if [[ "$_tagoutput" == "/dev/stdout" ]]; then
+      java -jar $_jarsDir/saxon9.jar -l:on -versionmsg:off -xsl:"$_xslDir/xsltctags-saxon.xsl" -s:"$_fileToParse" fileName="$_fileToParse"
+    else
+      java -jar $_jarsDir/saxon9.jar -l:on -versionmsg:off -xsl:"$_xslDir/xsltctags-saxon.xsl" -s:"$_fileToParse" -o:"$_tagoutput" fileName="$_fileToParse"
+    fi
+  fi
 }
 
-ctags_saxon(){
-java -jar jars/saxon9.jar -l:on -versionmsg:off -xsl:"$xsltctags_xsl-saxon.xsl" -it:Start fileNames="$1"  > $_tagoutput
+_createXSLTctagsVim(){
+  java -jar $_jarsDir/saxon9.jar -l:on -versionmsg:off -xsl:"$_xslDir/xsltctags-saxon.xsl" -it:createXSLTctagsvim
 }
 
 #If no arguments passed, then show usage
@@ -46,31 +65,40 @@ fi
 _tagoutput=tags #Default output file is tags
 _xsltprocessor=xsltproc
 
-while getopts ":f:ho:p:" opt; do
+_shiftCount=0
+while getopts "p:f:o:hv" opt; do
+  #echo found opt: $opt=$OPTARG
   case "$opt" in
-    h)    show_usage; exit ;;
-    f |o) if [[ $OPTARG == "-" ]]; then
-                _tagoutput="/dev/stdout"
-              else
-                _tagoutput="$OPTARG"
-              fi
-              ;;
-    p)    _xsltprocessor="$OPTARG"
-          ;;
-    \?)   echo "$0: ERROR - unrecognized option $1" 1>&2; exit 1;;
-    :)    echo "$0: ERROR - option -$OPTARG requires an argument" 1>&2; exit 1;;
-    *)    break;;
+    h)   show_usage; exit ;;
+    v)   _createXSLTctagsVim; exit ;;
+    p)   if [[ $OPTARG == "saxon" ]]; then
+           _xsltprocessor="saxon"
+         elif [[ $OPTARG == "xsltproc" ]]; then
+           _xsltprocessor="xsltproc"
+         fi
+         _shiftCount=$(($_shiftCount + 2))
+         ;;
+    f|o) if [[ $OPTARG == "-" ]]; then
+           _tagoutput="/dev/stdout"
+         else
+           _tagoutput="$OPTARG"
+         fi
+         _shiftCount=$(($_shiftCount + 2))
+         ;;
+    \?)  echo "$0: ERROR - unrecognized option $1" 1>&2; exit 1;;
+    :)   echo "$0: ERROR - option -$OPTARG requires an argument" 1>&2; exit 1;;
+    *)   break;;
   esac
 done
 
+#echo $_shiftCount
+shift $_shiftCount
+#for arg do echo '--> '"\`$arg'" ; done
 num_files=$#
 if [[ $num_files -lt 1 ]]; then
   echo "$0: ERROR - no files to process" 1>&2
   exit 1 #Exit if there are no files to process
 fi
 
-xsltctags_xsl=`dirname \`which $0\``/xsl/xsltctags
-
-echo _tagoutput=$_tagoutput
-echo _xsltprocessor=$_xsltprocessor
-echo _remainingoptions=$1
+_fileToParse=$1
+_runctags
