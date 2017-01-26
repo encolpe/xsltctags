@@ -52,7 +52,11 @@ _runctags(){
 }
 
 _createXSLTctagsVim(){
-  java -jar $_jarsDir/saxon9.jar -l:on -versionmsg:off -xsl:"$_xslDir/xsltctags-saxon.xsl" -it:createXSLTctagsvim
+  if [[ "$_xsltprocessor" == "xsltproc" ]]; then
+    echo "<xml><ctagsvim/></xml>" | xsltproc "$_xslDir/xsltctags-xsltproc.xsl" -
+  else
+    java -jar $_jarsDir/saxon9.jar -l:on -versionmsg:off -xsl:"$_xslDir/xsltctags-saxon.xsl" -it:createXSLTctagsvim
+  fi
 }
 
 #If no arguments passed, then show usage

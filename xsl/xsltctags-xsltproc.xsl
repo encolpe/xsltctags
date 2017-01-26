@@ -3,7 +3,8 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:saxonlibxslt="http://icl.com/saxon"
   xmlns:str="http://exslt.org/strings"
-  extension-element-prefixes="str"
+  xmlns:exsl="http://exslt.org/common"
+  extension-element-prefixes="str exsl"
   version="1.0">
 
 
@@ -69,5 +70,67 @@
     <!--Not implemented in xsltproc-->
     <!--See https://bugzilla.gnome.org/show_bug.cgi?id=670610 -->
   </xsl:template>
+
+  <!--A useful namedTemplate to help generate the XSLTctags.vim configuration file with the -->
+  <!--various kinds of XSLT elements to tag.-->
+  <xsl:template name="createXSLTctagsvim" match="/ctagsvim">
+    <exsl:document
+      href="xsltctags.vim"
+      method="text">
+      <xsl:text>let g:tagbar_type_xslt = {</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'ctagstype' : 'xslt',</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'ctagsbin'  : 'D:\Users\dparker\Dropbox\xsltctags\xsltctags.cmd',</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'ctagsargs' : '-f - -p xsltproc ',</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'sort' : 0,</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'kinds'     : [</xsl:text><xsl:text>&#xa;</xsl:text>
+
+      <xsl:for-each select="$kinds/kind">
+        <xsl:text>\ '</xsl:text>
+        <xsl:value-of select="@letter"/>
+        <xsl:text>:</xsl:text>
+        <xsl:value-of select="@pluralName"/>
+        <xsl:text>'</xsl:text>
+        <xsl:if test="not(position()=last())">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
+        <xsl:text>&#xa;</xsl:text>
+      </xsl:for-each>
+
+      <xsl:text>\ ],</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'sro': '////',</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'kind2scope' : {</xsl:text><xsl:text>&#xa;</xsl:text>
+
+      <xsl:for-each select="$kinds/kind">
+        <xsl:text>\ '</xsl:text>
+        <xsl:value-of select="@letter"/>
+        <xsl:text>' : '</xsl:text>
+        <xsl:value-of select="@shortName"/>
+        <xsl:text>'</xsl:text>
+        <xsl:if test="not(position()=last())">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
+        <xsl:text>&#xa;</xsl:text>
+      </xsl:for-each>
+
+      <xsl:text>\ },</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\ 'scope2kind' : {</xsl:text><xsl:text>&#xa;</xsl:text>
+
+      <xsl:for-each select="$kinds/kind">
+        <xsl:text>\ '</xsl:text>
+        <xsl:value-of select="@shortName"/>
+        <xsl:text>' : '</xsl:text>
+        <xsl:value-of select="@letter"/>
+        <xsl:text>'</xsl:text>
+        <xsl:if test="not(position()=last())">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
+        <xsl:text>&#xa;</xsl:text>
+      </xsl:for-each>
+
+      <xsl:text>\}</xsl:text><xsl:text>&#xa;</xsl:text>
+      <xsl:text>\}</xsl:text><xsl:text>&#xa;</xsl:text>
+    </exsl:document>
+
+    </xsl:template> <!-- end of <xsl:template name="createXSLTctagsvim"> -->
 
 </xsl:stylesheet>
